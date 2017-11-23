@@ -18,9 +18,9 @@ class CatchoomCraftar::Base
     end
 
     # list items
-    def list
+    def list(query_params = nil)
       rescue_known_exceptions do
-        response = RestClient.get(self.build_path, params: payload_for_list)
+        response = RestClient.get(self.build_path(query_params), params: payload_for_list)
         response_hash = JSON.parse(response)
         response_hash["objects"].map{ |obj| self.new(obj.symbolize_keys) }
       end
@@ -32,8 +32,10 @@ class CatchoomCraftar::Base
       resource.save
     end
 
-    def build_path
-      API_BASE_URI + "/#{self.craftar_type}/?api_key=#{CatchoomCraftar.management_api_key}"
+    def build_path(query_params = nil)
+      query_params ||= {}
+      query_params.merge!({ api_key: CatchoomCraftar.management_api_key })
+      API_BASE_URI + "/#{self.craftar_type}/?#{URI.encode_www_form(query_params)}"
     end
   end
 
